@@ -72,6 +72,10 @@ class DeleteTaskRequest(BaseModel):
     task_id: str
 
 
+class GetTaskRequest(BaseModel):
+    task_id: str
+
+
 @app.post("/todo/tasks")
 def list_tasks(req: ListTasksRequest | None = None) -> dict[str, Any]:
     if req is None:
@@ -82,6 +86,18 @@ def list_tasks(req: ListTasksRequest | None = None) -> dict[str, Any]:
             results.append(copy.deepcopy(t))
     resp = {"tasks": results, "total": len(results)}
     _log_call("/todo/tasks", req.model_dump(), resp)
+    return resp
+
+
+@app.post("/todo/tasks/get")
+def get_task(req: GetTaskRequest) -> dict[str, Any]:
+    for t in _tasks:
+        if t["task_id"] == req.task_id:
+            resp = copy.deepcopy(t)
+            _log_call("/todo/tasks/get", req.model_dump(), resp)
+            return resp
+    resp = {"error": f"Task {req.task_id} not found"}
+    _log_call("/todo/tasks/get", req.model_dump(), resp)
     return resp
 
 

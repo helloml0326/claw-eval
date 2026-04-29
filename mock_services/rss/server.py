@@ -68,6 +68,10 @@ class PublishRequest(BaseModel):
     recipients: list[str] = Field(default_factory=list)
 
 
+class GetFeedRequest(BaseModel):
+    feed_id: str
+
+
 @app.post("/rss/feeds")
 def list_feeds(req: ListFeedsRequest | None = None) -> dict[str, Any]:
     if req is None:
@@ -83,12 +87,41 @@ def list_feeds(req: ListFeedsRequest | None = None) -> dict[str, Any]:
             feeds[src] = {"source": src, "categories": set(), "article_count": 0}
         feeds[src]["categories"].add(cat)
         feeds[src]["article_count"] += 1
-    result = [
-        {"source": v["source"], "categories": list(v["categories"]), "article_count": v["article_count"]}
-        for v in feeds.values()
-    ]
+    # Build result with stable feed_id assignment
+    sources_sorted = sorted(feeds.keys())
+    result = []
+    for i, src in enumerate(sources_sorted):
+        v = feeds[src]
+        result.append({
+            "feed_id": f"feed_{i+1:02d}",
+            "source": v["source"],
+            "categories": list(v["categories"]),
+            "article_count": v["article_count"],
+        })
     resp = {"feeds": result, "total": len(result)}
     _log_call("/rss/feeds", req.model_dump(), resp)
+    return resp
+
+
+@app.post("/rss/feeds/get")
+def get_feed(req: GetFeedRequest) -> dict[str, Any]:
+    # Build feed_id → source mapping (consistent ordering)
+    sources = sorted(set(a["source"] for a in _articles))
+    feed_map = {f"feed_{i+1:02d}": src for i, src in enumerate(sources)}
+
+    source = feed_map.get(req.feed_id)
+    if source is None:
+        # Also try matching feed_id as source name directly
+        if req.feed_id in sources:
+            source = req.feed_id
+        else:
+            resp = {"error": f"Feed {req.feed_id} not found"}
+            _log_call("/rss/feeds/get", req.model_dump(), resp)
+            return resp
+
+    articles = [copy.deepcopy(a) for a in _articles if a["source"] == source]
+    resp = {"feed_id": req.feed_id, "source": source, "articles": articles, "total": len(articles)}
+    _log_call("/rss/feeds/get", req.model_dump(), resp)
     return resp
 
 

@@ -241,9 +241,13 @@ class OpenAICompatProvider:
         api_key: str | None = None,
         base_url: str | None = None,
         extra_body: dict | None = None,
+        temperature: float | None = 0.0,
+        reasoning_effort: str | None = None,
     ) -> None:
         self.model_id = model_id
         self.extra_body = extra_body or {}
+        self.temperature = temperature
+        self.reasoning_effort = reasoning_effort
         resolved_key = api_key or os.environ.get("OPENAI_API_KEY") or "unused"
         self.client = OpenAI(
             api_key=resolved_key,
@@ -274,10 +278,13 @@ class OpenAICompatProvider:
         kwargs: dict[str, Any] = {
             "model": self.model_id,
             "messages": oai_messages,
-            "temperature": 0.0,
         }
+        if self.temperature is not None:
+            kwargs["temperature"] = self.temperature
         if self.extra_body:
             kwargs["extra_body"] = dict(self.extra_body)
+        if self.reasoning_effort:
+            kwargs["reasoning_effort"] = self.reasoning_effort
         if tools:
             kwargs["tools"] = [_tool_spec_to_openai(t) for t in tools]
 

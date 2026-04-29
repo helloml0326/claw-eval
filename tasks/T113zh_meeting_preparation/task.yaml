@@ -97,6 +97,7 @@ tool_endpoints:
     method: POST
 
 environment:
+  mock_today: "2026-03-26"
   timeout_seconds: 300
   max_turns: 20
 
