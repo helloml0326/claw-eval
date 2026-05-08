@@ -9,6 +9,7 @@
 [![Paper](https://img.shields.io/badge/paper-arXiv-red)](https://arxiv.org/abs/2604.06132v1)
 [![Leaderboard](https://img.shields.io/badge/leaderboard-live-purple)](https://claw-eval.github.io)
 [![Dataset](https://img.shields.io/badge/🤗-Dataset-yellow)](https://huggingface.co/datasets/claw-eval/Claw-Eval)
+[![Dataset](https://img.shields.io/badge/ModelScope-MyRepo-624aff?logo=modelscope)](https://modelscope.cn/datasets/claw-eval/Claw-Eval)
 [![License](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
 
 > Claw-Eval: Towards Trustworthy Evaluation of Autonomous Agents. <br>
